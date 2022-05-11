@@ -1,0 +1,158 @@
+#!/bin/bash
+
+#funkcja dodająca nową wizytówkę i sprawdzająca czy nie istnieje już o takiej samej nazwie
+function nowawizytowka(){
+clear
+echo "Dodawanie nowych wizytówek"
+echo "Podaj ile wizytówek chcesz utworzyć:"
+read liczba
+for(( i=1; i<=$liczba; i++ ));
+do
+    clear
+    echo "Osoba numer $i"
+    echo "Podaj imię, pamiętaj że wielkośc liter ma znaczenie:"
+    read imie
+    echo "Podaj nazwisko, pamiętaj że wielkość liter ma znaczenie:"
+    read nazwisko
+    if [[ -e "$imie"_"$nazwisko" ]]
+    then
+        echo "Ta osoba już jest dodana"
+    else
+        echo "Numer telefonu:"
+        read numer
+        echo "E-mail:"
+        read email
+        echo "Adres:"
+        read adres
+        echo "Miasto:"
+        read miasto
+        echo "Kod pocztowy:"
+        read kod
+        touch "$imie"_"$nazwisko"
+        echo "$imie $nazwisko" >> "$imie"_"$nazwisko"
+        echo "Numer telefonu: $numer" >> "$imie"_"$nazwisko"
+        echo "E-mail: $email" >> "$imie"_"$nazwisko"
+        echo "Adres: $adres" >> "$imie"_"$nazwisko"
+        echo "Miasto: $miasto" >> "$imie"_"$nazwisko"
+        echo "Kod pocztowy: $kod" >> "$imie"_"$nazwisko"
+    fi
+done
+}
+
+#funkcja wyświetlająca zawartość katalogu wizytówki
+function wyswietlanie(){
+    ls
+}
+
+#funkcja sprawdzająca czy katalog istnieje, jeśli nie to go tworzy
+function katalog(){
+    if [[ -d $HOME/wizytowki ]]
+    then
+        echo ""
+    #utworzenie katalogu w momencie gdy go nie było
+    else mkdir $HOME/wizytowki && echo "Utworzono katalog wizytówki w katalogu HOME"
+    fi
+}
+
+#funkcja wyświetlająca zawartość pliku/ów
+function zawartosc(){
+    clear
+    echo "Wyświetlanie wizytówek:"
+    wyswietlanie;
+    echo "a - wybrana osoba"
+    echo "b - wszystkie osoby"
+    read wybor 
+    case $wybor in
+    a)echo "Podaj imię, pamiętaj że wielkośc liter ma znaczenie:"
+        read imie
+        echo "Podaj nazwisko, pamiętaj że wielkość liter ma znaczenie:"
+        read nazwisko
+        if [[ -e "$imie"_"$nazwisko" ]]
+        then
+            cat "$imie"_"$nazwisko"
+        else
+            echo "Ta osoba nie jest dodana, sprawdź wielkość liter"
+        fi;;
+    b) clear
+#pętla która przejdzie po wszystkich plikach w bierzącym katalogu
+        dir=${1:-"."}
+        for file in $dir/*; do
+            cat "$file"
+            echo ""
+        done;;
+    *) echo "Wprowadzony zły znak"
+    esac 
+}
+
+#funkcja usuwająca wizytówkę/ki
+function usun(){
+    clear
+    cd $HOME/wizytowki
+    echo "Usuwanie wizytówek"
+    wyswietlanie;
+    echo "1 - wybrana osoba"
+    echo "2 - wszystkie osoby, oraz zamknięcie programu"
+    read znak 
+    case $znak in
+    1)echo "Podaj imię, pamiętaj że wielkośc liter ma znaczenie:"
+        read imie
+        echo "Podaj nazwisko, pamiętaj że wielkość liter ma znaczenie:"
+        read nazwisko
+        if [[ -e "$imie"_"$nazwisko" ]]
+        then
+            rm -f "$imie"_"$nazwisko"
+            wyswietlanie;
+        else
+            echo "Ta osoba nie jest dodana, sprawdź wielkość liter"
+        fi;;
+    2) clear
+        if [[ -d $HOME/wizytowki ]]
+    then
+#-r usuwa katalog wraz z zawartością
+        rm -r $HOME/wizytowki
+        echo "Katalog wizytówki został usunięty wraz z zawartością"
+        else echo "Katalog wizytówki nie istniał"
+        fi
+        pwd;;
+    *) echo "Wprowadzony zły znak"
+    esac 
+}
+
+#sterowanie skryptem, główna część
+clear
+echo "Witaj w generatorze wizytówek V1.0"
+echo "###################################################################"
+cd
+#zmiana katalogu na katalog domowy użytkownika
+cd $HOME
+pwd
+#sprawdzanie czy istnieje katalog wizytówki
+katalog;
+cd wizytowki
+#nieskończona pętla, która jest przerywana w momencie wciśnięcia 5
+while [ 1 -eq 1 ] ; do
+    katalog;
+    echo "###################################################################"
+    echo "Wybierz opcję co chcesz zrobić, wcisnięcie odpowiedniej cyfry wywoła odpowiednią akcje"
+    echo "1 - utworzenie nowej wizytówki"
+    echo "2 - wyświetlenie istniejących wizytówek"
+    echo "3 - wyświetlenie zawartości wizytówki"
+    echo "4 - usunięcie wizytówki"
+    echo "5 - wyjście z programu"
+    read znak
+    clear
+    case $znak in
+    # utworzenie nowej wizytówki
+    1) nowawizytowka;;
+    2) wyswietlanie;;
+    3) zawartosc;;
+    4) usun
+        if [[ -d $HOME/wizytowki ]]
+    then
+        echo ""
+        else break
+        fi;;
+    5) break
+    esac
+done
+
